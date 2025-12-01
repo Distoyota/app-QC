@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario {{ form.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-header">
+            <button onclick="goBack()" class="btn-back">← Volver</button>
+            <h1>Formulario {{ form.id }}: {{ form.name }}</h1>
+        </div>
+        
+        <form id="mainForm" class="main-form">
+            <div id="formFields"></div>
+            <button type="submit" class="btn btn-submit">Guardar Formulario</button>
+        </form>
+    </div>
+    
+    <script>
+        const formId = Number("{{ form.id }}");
+        
+        const formFieldsConfig = {
+            1: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_recepcion', label: 'Fecha de Recepción *', type: 'date', required: true },
+                { name: 'cliente', label: 'Nombre del Cliente *', type: 'text', required: true },
+                { name: 'vehiculo_marca', label: 'Marca del Vehículo *', type: 'text', required: true },
+                { name: 'vehiculo_modelo', label: 'Modelo del Vehículo *', type: 'text', required: true },
+                { name: 'kilometraje', label: 'Kilometraje', type: 'number', required: false },
+                { name: 'motivo_ingreso', label: 'Motivo de Ingreso *', type: 'textarea', required: true }
+            ],
+            2: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_evaluacion', label: 'Fecha de Evaluación *', type: 'date', required: true },
+                { name: 'tecnico_evaluador', label: 'Técnico Evaluador *', type: 'text', required: true },
+                { name: 'diagnostico', label: 'Diagnóstico *', type: 'textarea', required: true },
+                { name: 'trabajos_requeridos', label: 'Trabajos Requeridos *', type: 'textarea', required: true },
+                { name: 'estado_general', label: 'Estado General *', type: 'select', required: true, options: ['Excelente', 'Bueno', 'Regular', 'Malo'] }
+            ],
+            3: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_consulta', label: 'Fecha de Consulta *', type: 'date', required: true },
+                { name: 'usuario_site', label: 'Usuario SITE *', type: 'text', required: true },
+                { name: 'informacion_tecnica', label: 'Información Técnica *', type: 'textarea', required: true },
+                { name: 'manuales_consultados', label: 'Manuales Consultados', type: 'text', required: false }
+            ],
+            4: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_cotizacion', label: 'Fecha de Cotización *', type: 'date', required: true },
+                { name: 'repuestos_solicitados', label: 'Repuestos Solicitados *', type: 'textarea', required: true },
+                { name: 'valor_total', label: 'Valor Total *', type: 'number', required: true },
+                { name: 'proveedor', label: 'Proveedor', type: 'text', required: false }
+            ],
+            5: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_aprobacion', label: 'Fecha de Aprobación *', type: 'date', required: true },
+                { name: 'aprobado_por', label: 'Aprobado Por *', type: 'text', required: true },
+                { name: 'estado_aprobacion', label: 'Estado *', type: 'select', required: true, options: ['Aprobado', 'Rechazado', 'Pendiente'] },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea', required: false }
+            ],
+            6: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_entrega', label: 'Fecha de Entrega *', type: 'date', required: true },
+                { name: 'numero_informe', label: 'Número de Informe', type: 'text', required: false },
+                { name: 'responsable_entrega', label: 'Responsable *', type: 'text', required: true },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea', required: false }
+            ],
+            7: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_solicitud', label: 'Fecha de Solicitud *', type: 'date', required: true },
+                { name: 'repuestos', label: 'Repuestos Solicitados *', type: 'textarea', required: true },
+                { name: 'solicitante', label: 'Solicitante *', type: 'text', required: true },
+                { name: 'urgencia', label: 'Nivel de Urgencia *', type: 'select', required: true, options: ['Alta', 'Media', 'Baja'] }
+            ],
+            8: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_solicitud', label: 'Fecha de Solicitud *', type: 'date', required: true },
+                { name: 'repuestos_adicionales', label: 'Repuestos Adicionales *', type: 'textarea', required: true },
+                { name: 'solicitante', label: 'Solicitante *', type: 'text', required: true },
+                { name: 'justificacion', label: 'Justificación', type: 'textarea', required: false }
+            ],
+            9: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_ingreso_taller', label: 'Fecha de Ingreso al Taller *', type: 'date', required: true },
+                { name: 'ubicacion_taller', label: 'Ubicación en Taller', type: 'text', required: false },
+                { name: 'tecnico_asignado', label: 'Técnico Asignado *', type: 'text', required: true },
+                { name: 'estado_vehiculo', label: 'Estado del Vehículo', type: 'textarea', required: false }
+            ],
+            10: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_inicio', label: 'Fecha de Inicio *', type: 'date', required: true },
+                { name: 'hora_inicio', label: 'Hora de Inicio', type: 'time', required: false },
+                { name: 'tecnico_responsable', label: 'Técnico Responsable *', type: 'text', required: true },
+                { name: 'trabajos_iniciar', label: 'Trabajos a Realizar *', type: 'textarea', required: true }
+            ],
+            11: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_desarmado', label: 'Fecha de Desarmado *', type: 'date', required: true },
+                { name: 'tecnico', label: 'Técnico *', type: 'text', required: true },
+                { name: 'componentes_retirados', label: 'Componentes Retirados *', type: 'textarea', required: true },
+                { name: 'hallazgos', label: 'Hallazgos', type: 'textarea', required: false }
+            ],
+            12: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_armado', label: 'Fecha de Armado *', type: 'date', required: true },
+                { name: 'tecnico', label: 'Técnico *', type: 'text', required: true },
+                { name: 'componentes_instalados', label: 'Componentes Instalados *', type: 'textarea', required: true },
+                { name: 'pruebas_realizadas', label: 'Pruebas Realizadas', type: 'textarea', required: false }
+            ],
+            13: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_limpieza', label: 'Fecha de Limpieza *', type: 'date', required: true },
+                { name: 'responsable', label: 'Responsable *', type: 'text', required: true },
+                { name: 'tipo_limpieza', label: 'Tipo de Limpieza *', type: 'select', required: true, options: ['Exterior', 'Interior', 'Motor', 'Completa'] },
+                { name: 'productos_utilizados', label: 'Productos Utilizados', type: 'text', required: false }
+            ],
+            14: [
+                { name: 'placa', label: 'Número de Placa *', type: 'text', required: true },
+                { name: 'orden', label: 'Número de Orden *', type: 'text', required: true },
+                { name: 'fecha_inspeccion', label: 'Fecha de Inspección *', type: 'date', required: true },
+                { name: 'inspector', label: 'Inspector *', type: 'text', required: true },
+                { name: 'resultado_inspeccion', label: 'Resultado *', type: 'select', required: true, options: ['Aprobado', 'Requiere Ajustes', 'No Aprobado'] },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea', required: false }
+            ]
+        };
+        
+        function renderForm() {
+            const fields = formFieldsConfig[formId] || [];
+            const container = document.getElementById('formFields');
+            
+            fields.forEach(field => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'form-field';
+                
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                label.setAttribute('for', field.name);
+                fieldDiv.appendChild(label);
+                
+                let input;
+                if (field.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.rows = 4;
+                } else if (field.type === 'select') {
+                    input = document.createElement('select');
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Seleccione una opción';
+                    input.appendChild(defaultOption);
+                    
+                    field.options.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.textContent = opt;
+                        input.appendChild(option);
+                    });
+                } else {
+                    input = document.createElement('input');
+                    input.type = field.type;
+                }
+                
+                input.name = field.name;
+                input.id = field.name;
+                input.required = field.required;
+                input.className = 'input-field';
+                
+                fieldDiv.appendChild(input);
+                container.appendChild(fieldDiv);
+            });
+        }
+        
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            try {
+                const response = await fetch('/api/save_form', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        form_id: formId,
+                        data: data
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Formulario guardado exitosamente');
+                    window.location.href = '/';
+                } else {
+                    alert('Error al guardar: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        function goBack() {
+            window.location.href = '/';
+        }
+        
+        document.getElementById('mainForm').addEventListener('submit', handleSubmit);
+        renderForm();
+    </script>
+</body>
+</html>

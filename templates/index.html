@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Formularios - 14 Etapas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Sistema de Gestión de Trámites</h1>
+            <p class="subtitle">Seleccione el formulario a diligenciar</p>
+        </header>
+        
+        <div class="search-section">
+            <h2>Buscar Registros Existentes</h2>
+            <div class="search-form">
+                <input type="text" id="searchPlaca" placeholder="Número de Placa" class="input-field">
+                <input type="text" id="searchOrden" placeholder="Número de Orden" class="input-field">
+                <button onclick="searchRecords()" class="btn btn-search">Buscar</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <div class="forms-grid">
+            {% for form in forms %}
+            <div class="form-card" onclick="goToForm('{{ form.id }}')">
+                <div class="form-number">{{ form.id }}</div>
+                <div class="form-name">{{ form.name }}</div>
+                <div class="form-icon">📋</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        function goToForm(formId) {
+            window.location.href = `/form/${formId}`;
+        }
+        
+        async function searchRecords() {
+            const placa = document.getElementById('searchPlaca').value;
+            const orden = document.getElementById('searchOrden').value;
+            
+            if (!placa && !orden) {
+                alert('Ingrese al menos un criterio de búsqueda');
+                return;
+            }
+            
+            try {
+                const params = new URLSearchParams();
+                if (placa) params.append('placa', placa);
+                if (orden) params.append('orden', orden);
+                
+                // FIX: Corregí el error de sintaxis aquí
+                const response = await fetch(`/api/search?${params}`);
+                const result = await response.json();
+                
+                const resultsDiv = document.getElementById('searchResults');
+                
+                if (result.success && Object.keys(result.data).length > 0) {
+                    let html = '<h3>Registros Encontrados:</h3>';
+                    for (const [formName, records] of Object.entries(result.data)) {
+                        html += `<div class="result-section">
+                            <h4>${formName}</h4>
+                            <div class="records-list">`;
+                        records.forEach(record => {
+                            html += `<div class="record-item">
+                                <p><strong>Placa:</strong> ${record.placa || 'N/A'}</p>
+                                <p><strong>Orden:</strong> ${record.orden || 'N/A'}</p>
+                                <p><strong>Fecha:</strong> ${new Date(record.created_at).toLocaleDateString()}</p>
+                            </div>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<p class="no-results">No se encontraron registros</p>';
+                }
+            } catch (error) {
+                alert('Error al buscar registros: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

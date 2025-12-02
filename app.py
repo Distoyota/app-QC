@@ -1,24 +1,18 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from supabase import create_client, Client
 import os
 from datetime import datetime
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key =  os.getenv("SUPABASE_SERVISE_ROLE_ENTORNO")
 
 # ========================================
 # CONFIGURACIÓN DE SUPABASE
 # ========================================
 # Reemplaza estos valores con tus credenciales reales de Supabase
-
-# Opción 1: Usando la URL del proyecto (RECOMENDADO)
-SUPABASE_URL = "https://oonzxoergmpguhvvfgis.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbnp4b2VyZ21wZ3VodnZmZ2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1OTA5ODEsImV4cCI6MjA4MDE2Njk4MX0.B7gWkGirbTqbigAJAl4xAPUzy-8B1drr4pS70gGtsuE"  # Esta es la clave "anon" o "public" que encuentras en Settings > API
-
-# Para encontrar tu SUPABASE_KEY:
-# 1. Ve a tu proyecto en Supabase
-# 2. Click en Settings (⚙️) en el menú lateral
-# 3. Click en API
-# 4. Copia la clave "anon" "public" (NO uses la service_role key)
+SUPABASE_URL = os.getenv("SUPABASE_URL_ENTORNO")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY_ENTORNO")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -43,20 +37,79 @@ FORMS_CONFIG = [
 ]
 
 # ========================================
-# RUTAS
+# DECORADOR DE AUTENTICACIÓN
+# ========================================
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ========================================
+# RUTAS DE AUTENTICACIÓN
+# ========================================
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        
+        try:
+            # Autenticar con Supabase
+            response = supabase.auth.sign_in_with_password({
+                "email": email,
+                "password": password
+            })
+            
+            # Guardar información del usuario en la sesión
+            session['user'] = {
+                'id': response.user.id,
+                'email': response.user.email,
+                'access_token': response.session.access_token
+            }
+            
+            return jsonify({'success': True, 'message': 'Login exitoso'})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 401
+    
+    # Si el usuario ya está logueado, redirigir al inicio
+    if 'user' in session:
+        return redirect(url_for('index'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    try:
+        if 'user' in session:
+            # Cerrar sesión en Supabase
+            supabase.auth.sign_out()
+        session.clear()
+    except:
+        pass
+    return redirect(url_for('login'))
+
+# ========================================
+# RUTAS PROTEGIDAS
 # ========================================
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html', forms=FORMS_CONFIG)
 
 @app.route('/form/<int:form_id>')
+@login_required
 def form_page(form_id):
     form = next((f for f in FORMS_CONFIG if f['id'] == form_id), None)
     if not form:
         return "Formulario no encontrado", 404
-    return render_template('form.html', form=form)  # ← Aquí pasas 'form'
+    return render_template('form.html', form=form)
 
 @app.route('/api/save_form', methods=['POST'])
+@login_required
 def save_form():
     try:
         data = request.json
@@ -67,18 +120,20 @@ def save_form():
         if not form:
             return jsonify({'error': 'Formulario no encontrado'}), 404
         
-        # Agregar timestamp
+        # Agregar timestamp y usuario
         form_data['created_at'] = datetime.now().isoformat()
+        form_data['user_email'] = session['user']['email']
         
         # Guardar en Supabase
         result = supabase.table(form['table']).insert(form_data).execute()
         
         return jsonify({'success': True, 'data': result.data})
     except Exception as e:
-        print(f"Error al guardar: {str(e)}")  # Para debug
+        print(f"Error al guardar: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/get_records/<table_name>')
+@login_required
 def get_records(table_name):
     try:
         # Buscar por placa u orden
@@ -95,10 +150,11 @@ def get_records(table_name):
         result = query.execute()
         return jsonify({'success': True, 'data': result.data})
     except Exception as e:
-        print(f"Error al obtener registros: {str(e)}")  # Para debug
+        print(f"Error al obtener registros: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/search')
+@login_required
 def search():
     try:
         placa = request.args.get('placa')
@@ -121,7 +177,7 @@ def search():
         
         return jsonify({'success': True, 'data': results})
     except Exception as e:
-        print(f"Error en búsqueda: {str(e)}")  # Para debug
+        print(f"Error en búsqueda: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/test_connection')

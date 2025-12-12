@@ -38,7 +38,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 # Usuarios a crear
 USUARIOS = [
     {
-        "email": "miguell.mmahecha@distoyota.com.co",
+        "email": "jorge.nino@distoyota.com.co",
         "password": "Distoyota2025",  # Cambiar por contraseñas seguras
         "email_confirm": True
     }

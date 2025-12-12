@@ -100,6 +100,12 @@ def logout():
 def index():
     return render_template('index.html', forms=FORMS_CONFIG)
 
+@app.route('/view_records')
+@login_required
+def view_records():
+    """Página para visualizar registros completos"""
+    return render_template('view_records.html')
+
 @app.route('/form/<int:form_id>')
 @login_required
 def form_page(form_id):

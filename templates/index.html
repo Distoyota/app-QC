@@ -9,19 +9,15 @@
 <body>
     <div class="container">
         <header class="header">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1; min-width: 100px;"></div>
-                <h1 style="flex: 2; text-align: center; margin: 0; min-width: 300px;">QC Distoyota por Formularios</h1>
-                <div style="flex: 1; text-align: right; min-width: 200px;">
-                    <div style="background: #f3f3f3; padding: 10px 20px; border-radius: 8px; display: inline-block;">
-                        <span style="color: #555; font-size: 0.9em;">👤 {{ session.user.email }}</span>
-                        <a href="/logout" style="margin-left: 15px; color: #e31b23; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#b11217'" onmouseout="this.style.color='#e31b23'">Salir</a>
-                    </div>
-                </div>
-            </div>
+            <h1>Sistema de Gestión de Trámites</h1>
             <p class="subtitle">Seleccione el formulario a diligenciar</p>
+            <div style="margin-top: 20px;">
+                <button onclick="goToViewRecords()" class="btn btn-view-records">
+                    📊 Ver Todos los Registros
+                </button>
+            </div>
         </header>
-        
+
         <div class="search-section">
             <h2>Buscar Registros Existentes</h2>
             <div class="search-form">
@@ -31,7 +27,7 @@
             </div>
             <div id="searchResults" class="search-results"></div>
         </div>
-        
+
         <div class="forms-grid">
             {% for form in forms %}
             <div class="form-card" onclick="goToForm('{{ form.id }}')">
@@ -42,69 +38,59 @@
             {% endfor %}
         </div>
     </div>
-    
+
     <script>
         function goToForm(formId) {
-            window.location.href = `/form/${formId}`;
+            window.location.href = '/form/' + formId;
         }
-        
+
+        function goToViewRecords() {
+            window.location.href = '/view_records';
+        }
+
         async function searchRecords() {
-            const placa = document.getElementById('searchPlaca').value;
-            const orden = document.getElementById('searchOrden').value;
-            
-            if (!placa && !orden) {
-                alert('Ingrese al menos un criterio de búsqueda');
-                return;
+    const placa = document.getElementById('searchPlaca').value;
+    const orden = document.getElementById('searchOrden').value;
+
+    if (!placa && !orden) {
+        alert('Ingrese al menos un criterio de búsqueda');
+        return;
+    }
+
+    try {
+        const params = new URLSearchParams();
+        if (placa) params.append('placa', placa);
+        if (orden) params.append('orden', orden);
+
+        const response = await fetch('/api/search?' + params.toString());
+        const result = await response.json();
+
+        const resultsDiv = document.getElementById('searchResults');
+
+        if (result.success && Object.keys(result.data).length > 0) {
+            let html = '<h3>Registros Encontrados:</h3>';
+            for (const formName in result.data) {
+                const records = result.data[formName];
+                html += '<div class="result-section"><h4>' + formName + '</h4><div class="records-list">';
+                records.forEach(function(record) {
+                    html += '<div class="record-item">';
+                    html += '<p><strong>Placa:</strong> ' + (record.placa || 'N/A') + '</p>';
+                    html += '<p><strong>Orden:</strong> ' + (record.orden || 'N/A') + '</p>';
+                    html += '<p><strong>Fecha:</strong> ' + new Date(record.created_at).toLocaleDateString() + '</p>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
             }
-            
-            try {
-                const params = new URLSearchParams();
-                if (placa) params.append('placa', placa);
-                if (orden) params.append('orden', orden);
-                
-                const response = await fetch(`/api/search?${params}`);
-                const result = await response.json();
-                
-                const resultsDiv = document.getElementById('searchResults');
-                
-                if (result.success && Object.keys(result.data).length > 0) {
-                    let html = '<h3>Registros Encontrados:</h3>';
-                    for (const [formName, records] of Object.entries(result.data)) {
-                        html += `<div class="result-section">
-                            <h4>${formName}</h4>
-                            <div class="records-list">`;
-                        records.forEach(record => {
-                            html += `<div class="record-item">
-                                <p><strong>Placa:</strong> ${record.placa || 'N/A'}</p>
-                                <p><strong>Orden:</strong> ${record.orden || 'N/A'}</p>
-                                <p><strong>Fecha:</strong> ${new Date(record.created_at).toLocaleDateString()}</p>
-                                <p><strong>Usuario:</strong> ${record.user_email || 'N/A'}</p>
-                            </div>`;
-                        });
-                        html += `</div></div>`;
-                    }
-                    resultsDiv.innerHTML = html;
-                } else {
-                    resultsDiv.innerHTML = '<p class="no-results">No se encontraron registros</p>';
-                }
-            } catch (error) {
-                console.error('Error al buscar:', error);
-                alert('Error al buscar registros: ' + error.message);
-            }
+            resultsDiv.innerHTML = html;
+        } else {
+            resultsDiv.innerHTML = '<p class="no-results">No se encontraron registros</p>';
         }
-        
-        // Permitir buscar con Enter
-        document.getElementById('searchPlaca').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchRecords();
-            }
-        });
-        
-        document.getElementById('searchOrden').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchRecords();
-            }
-        });
+    } catch (error) {
+        console.error('Error al buscar:', error);
+        alert('Error al buscar registros: ' + error.message);
+    }
+}
+
     </script>
 </body>
 </html>

@@ -13,7 +13,6 @@ app.secret_key =  os.getenv("SUPABASE_SERVISE_ROLE_ENTORNO")
 # Reemplaza estos valores con tus credenciales reales de Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL_ENTORNO")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY_ENTORNO")
-
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ========================================

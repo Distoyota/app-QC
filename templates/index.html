@@ -19,6 +19,17 @@
         </header>
 
         <div class="search-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1; min-width: 100px;"></div>
+                <h1 style="flex: 2; text-align: center; margin: 0; min-width: 300px;">QC Distoyota por Formularios</h1>
+                <div style="flex: 1; text-align: right; min-width: 200px;">
+                    <div style="background: #f3f3f3; padding: 10px 20px; border-radius: 8px; display: inline-block;">
+                        <span style="color: #555; font-size: 0.9em;">👤 {{ session.user.email }}</span>
+                        <a href="/logout" style="margin-left: 15px; color: #e31b23; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#b11217'" onmouseout="this.style.color='#e31b23'">Salir</a>
+                    </div>
+                </div>
+            </div>
+
             <h2>Buscar Registros Existentes</h2>
             <div class="search-form">
                 <input type="text" id="searchPlaca" placeholder="Número de Placa" class="input-field">
